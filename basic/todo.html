@@ -184,6 +184,7 @@
                       type="button"
                       class="close ml-auto"
                       aria-label="Close"
+                      @click="removeTodo(index)"
                     >
                       <span aria-hidden="true">&times;</span>
                     </button>
@@ -232,14 +233,21 @@
               },
               methods: {
                 addTodo() {
-                  let value = this.newTodo;
+                  let value = this.newTodo.trim(); //去除空格
                   let timestamp = Math.floor(Date.now());
+                  //沒輸入文字不能輸出
+                  if (!value) {
+                    return;
+                  }
                   this.todos.push({
                     id: timestamp,
                     title: value,
                     completed: false,
                   });
                   this.newTodo = "";
+                },
+                removeTodo(index) {
+                  this.todos.splice(index, 1);
                 },
               },
             });

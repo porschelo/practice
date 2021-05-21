@@ -157,26 +157,56 @@
               <div class="card-header">
                 <ul class="nav nav-tabs card-header-tabs">
                   <li class="nav-item">
-                    <a class="nav-link active" href="#">全部</a>
+                    <a
+                      class="nav-link"
+                      :class="{'active':visibility == 'all'}"
+                      @click="visibility = 'all'"
+                      href="#"
+                      >全部</a
+                    >
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="#">進行中</a>
+                    <a
+                      class="nav-link"
+                      :class="{'active':visibility == 'active'}"
+                      @click="visibility = 'active'"
+                      href="#"
+                      >進行中</a
+                    >
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="#">已完成</a>
+                    <a
+                      class="nav-link"
+                      :class="{'active':visibility == 'finished'}"
+                      @click="visibility = 'finished'"
+                      href="#"
+                      >已完成</a
+                    >
                   </li>
                 </ul>
               </div>
               <ul class="list-group list-group-flush text-left">
-                <li class="list-group-item" v-for="(item, index) in todos">
+                <li
+                  class="list-group-item"
+                  v-for="(item, index) in filterTodos"
+                  :key="`todos${index}`"
+                >
                   <div class="d-flex">
                     <div class="form-check">
                       <input
                         type="checkbox"
                         class="form-check-input"
                         :id="item.id"
+                        v-model="item.completed"
                       />
-                      <label class="form-check-label" :for="item.id">
+                      <!-- 讓該個事項的 completed 狀態隨著 checkbox 的點擊狀態做修改 -->
+                      <label
+                        class="form-check-label"
+                        :for="item.id"
+                        :class="{ 'completed' : item.completed }"
+                      >
+                        <!-- 切換class 判斷是否要套用 completed 的樣式效果(刪除線) -->
+                        <!--  :class="{ class名稱 : 增加條件 }"-->
                         {{item.title}}
                       </label>
                     </div>
@@ -230,14 +260,17 @@
                   //   completed: false
                   // },
                 ],
+                visibility: "all",
               },
               methods: {
+                //新增
                 addTodo() {
-                  let value = this.newTodo.trim(); //去除空格
+                  let value = this.newTodo.trim();
                   let timestamp = Math.floor(Date.now());
-                  //沒輸入文字不能輸出
+
+                  //空值不能新增
                   if (!value) {
-                    return;
+                    return alert("請輸入內容");
                   }
                   this.todos.push({
                     id: timestamp,
@@ -246,8 +279,35 @@
                   });
                   this.newTodo = "";
                 },
+                //刪除 利用陣列回傳的index值來刪除被點擊的那一個
                 removeTodo(index) {
                   this.todos.splice(index, 1);
+                },
+              },
+              computed: {
+                filterTodos() {
+                  if (this.visibility == "all") {
+                    return this.todos;
+                  } else if (this.visibility == "active") {
+                    let activeTodo = [];
+                    this.todos.forEach((item) => {
+                      // if (item.completed == false) {
+                      if (!item.completed) {
+                        activeTodo.push(item);
+                      }
+                    });
+                    return activeTodo;
+                  } else if (this.visibility == "finished") {
+                    let activeTodo = [];
+                    this.todos.forEach((item) => {
+                      // if (item.completed == false) {
+                      if (item.completed) {
+                        activeTodo.push(item);
+                      }
+                    });
+                    return activeTodo;
+                  }
+                  return [];
                 },
               },
             });

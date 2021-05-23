@@ -190,8 +190,10 @@
                   class="list-group-item"
                   v-for="(item, index) in filterTodos"
                   :key="`todos${index}`"
+                  @dblclick="editTodo(item)"
                 >
-                  <div class="d-flex">
+                  <!-- 雙擊後 切換成編輯樣式 要把雙擊的物件存起來 -->
+                  <div class="d-flex" v-if="catchTodo.id != item.id">
                     <div class="form-check">
                       <input
                         type="checkbox"
@@ -214,11 +216,20 @@
                       type="button"
                       class="close ml-auto"
                       aria-label="Close"
-                      @click="removeTodo(index)"
+                      @click="removeTodo(item)"
                     >
                       <span aria-hidden="true">&times;</span>
                     </button>
                   </div>
+                  <!-- 雙擊後的畫面在這  雙擊後item.id會傳給catchTodo.id -->
+                  <input
+                    type="text"
+                    class="form-control"
+                    v-if="catchTodo.id === item.id"
+                    v-model="catchTitle"
+                    @keyup.esc="cancelEdit()"
+                    @keyup.13="doneTodo(item)"
+                  />
                 </li>
                 <!-- <li class="list-group-item">
                   <div class="d-flex">
@@ -237,13 +248,13 @@
                     </button>
                   </div>
                 </li> -->
-                <li class="list-group-item">
+                <!-- <li class="list-group-item">
                   <input type="text" class="form-control" />
-                </li>
+                </li> -->
               </ul>
               <div class="card-footer d-flex justify-content-between">
-                <span>還有 3 筆任務未完成</span>
-                <a href="#">清除所有任務</a>
+                <span>還有{{totalTodo}}筆任務未完成</span>
+                <a href="#" @click="deleteAll">清除所有任務</a>
               </div>
             </div>
           </div>
@@ -261,6 +272,8 @@
                   // },
                 ],
                 visibility: "all",
+                catchTodo: {}, //存放 被雙擊todos中的item物件
+                catchTitle: "", //存放新編輯的title
               },
               methods: {
                 //新增
@@ -279,12 +292,46 @@
                   });
                   this.newTodo = "";
                 },
-                //刪除 利用陣列回傳的index值來刪除被點擊的那一個
-                removeTodo(index) {
-                  this.todos.splice(index, 1);
+                //刪除 利用陣列回傳的index值來刪除被點擊的那一個 有bug
+                //index 改成回傳物件 用物件的id去跑回圈判斷
+                // removeTodo(index) {
+                //   this.todos.splice(index, 1);
+                // },
+                removeTodo(todo) {
+                  // var vm = this;
+                  var newIndex = this.todos.findIndex(function (item, key) {
+                    return todo.id === item.id;
+                  });
+                  this.todos.splice(newIndex, 1);
+                },
+
+                //修改編輯
+                editTodo(item) {
+                  console.log(item);
+                  this.catchTodo = item;
+                  this.catchTitle = item.title;
+                },
+                cancelEdit() {
+                  this.catchTodo = {};
+                },
+                doneTodo(item) {
+                  item.title = this.catchTitle;
+                  this.catchTitle = "";
+                  this.catchTodo = {};
+                },
+
+                deleteAll() {
+                  var yes = confirm("你確定嗎？");
+
+                  if (yes) {
+                    this.todos = [];
+                  } else {
+                    alert("你取消刪除全部");
+                  }
                 },
               },
               computed: {
+                //tag標籤 過濾分組
                 filterTodos() {
                   if (this.visibility == "all") {
                     return this.todos;
@@ -308,6 +355,24 @@
                     return activeTodo;
                   }
                   return [];
+                },
+                totalTodo: function () {
+                  let totalarr = [];
+                  //for loop
+                  // for (let i = 0; i > this.todos.length; i++) {
+                  //   if (this.todos.completed === false) {
+                  //     totalarr.push(i);
+                  //   }
+                  // }
+                  // return totalarr.length;
+
+                  //foreach
+                  this.todos.forEach(function (item) {
+                    if (item.completed === false) {
+                      totalarr.push(item);
+                    }
+                  });
+                  return totalarr.length;
                 },
               },
             });
